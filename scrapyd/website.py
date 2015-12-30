@@ -105,16 +105,16 @@ class Jobs(resource.Resource):
         self.local_items = local_items
 
     def render(self, txrequest):
-        cols = 6
+        cols = 8
         s = "<html><head><title>Scrapyd</title></head>"
         s += "<body>"
         s += "<h1>Jobs</h1>"
         s += "<p><a href='..'>Go back</a></p>"
         s += "<table border='1'>"
-        s += "<tr><th>Project</th><th>Spider</th><th>Job</th><th>PID</th><th>Runtime</th><th>Log</th>"
+        s += "<tr><th>Project</th><th>Spider</th><th>Job</th><th>PID</th><th>startTime</th><th>Runtime</th><th>Log</th><th>Action</th>"
         if self.local_items:
             s += "<th>Items</th>"
-            cols = 7
+            cols = 9
         s += "</tr>"
         s += "<tr><th colspan='%s' style='background-color: #ddd'>Pending</th></tr>" % cols
         for project, queue in self.root.poller.queues.items():
@@ -129,8 +129,10 @@ class Jobs(resource.Resource):
             s += "<tr>"
             for a in ['project', 'spider', 'job', 'pid']:
                 s += "<td>%s</td>" % getattr(p, a)
+            s += "<td>%s</td>" % (p.start_time)
             s += "<td>%s</td>" % (datetime.now() - p.start_time)
             s += "<td><a href='/logs/%s/%s/%s.log'>Log</a></td>" % (p.project, p.spider, p.job)
+            s += "<td><a href='/stop.json?project=%s&job=%s&pid=%s'>Stop</a></td>" % (p.project, p.job, p.pid)
             if self.local_items:
                 s += "<td><a href='/items/%s/%s/%s.jl'>Items</a></td>" % (p.project, p.spider, p.job)
             s += "</tr>"
@@ -140,6 +142,7 @@ class Jobs(resource.Resource):
             for a in ['project', 'spider', 'job']:
                 s += "<td>%s</td>" % getattr(p, a)
             s += "<td></td>"
+            s += "<td>%s</td>" % (p.start_time)
             s += "<td>%s</td>" % (p.end_time - p.start_time)
             s += "<td><a href='/logs/%s/%s/%s.log'>Log</a></td>" % (p.project, p.spider, p.job)
             if self.local_items:
@@ -149,3 +152,4 @@ class Jobs(resource.Resource):
         s += "</body>"
         s += "</html>"
         return s
+

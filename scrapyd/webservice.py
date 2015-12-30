@@ -1,4 +1,5 @@
 import traceback
+import os
 import uuid
 from cStringIO import StringIO
 
@@ -141,3 +142,24 @@ class DeleteVersion(DeleteProject):
         version = txrequest.args['version'][0]
         self._delete_version(project, version)
         return {"node_name": self.root.nodename, "status": "ok"}
+
+class StopJob(WsResource):
+
+    def render_GET(self, txrequest):
+        args = dict((k, v[0]) for k, v in txrequest.args.items())
+        project = args['project']
+        jobid = args['job']
+        signal = args.get('signal', 'TERM')
+        prevstate = None
+        queue = self.root.poller.queues[project]
+        c = queue.remove(lambda x: x["_job"] == jobid)
+        if c:
+            prevstate = "pending"
+        spiders = self.root.launcher.processes.values()
+        for s in spiders:
+            if s.job == jobid:
+                s.transport.signalProcess(signal)
+                prevstate = "running"
+        pid = args.get('pid')
+        ret = os.system('kill -9 %s' % pid)
+        return {"node_name": self.root.nodename, "ret": str(ret)}
