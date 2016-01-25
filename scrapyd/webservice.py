@@ -161,5 +161,5 @@ class StopJob(WsResource):
                 s.transport.signalProcess(signal)
                 prevstate = "running"
         pid = args.get('pid')
-        ret = os.system('kill -9 %s' % pid)
-        return {"node_name": self.root.nodename, "ret": str(ret)}
+        #ret = os.system('kill -9 %s' % pid)
+        return {"node_name": self.root.nodename, "ret": prevstate}
